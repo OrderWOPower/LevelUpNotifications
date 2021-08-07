@@ -13,14 +13,16 @@ namespace LevelUpNotifications
             {
                 CampaignGameStarter campaignStarter = (CampaignGameStarter)gameStarter;
                 campaignStarter.AddBehavior(new LevelUpNotificationsBehavior());
+                _levelUpNotificationsTracker = new LevelUpNotificationsTracker();
             }
         }
         protected override void OnApplicationTick(float dt)
         {
             if (Campaign.Current != null)
             {
-                LevelUpNotificationsTracker.SetPartyNotification();
+                _levelUpNotificationsTracker.SetPartyNotification();
             }
         }
+        private LevelUpNotificationsTracker _levelUpNotificationsTracker;
     }
 }
