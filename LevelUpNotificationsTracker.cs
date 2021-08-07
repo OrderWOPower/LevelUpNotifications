@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors;
 using TaleWorlds.Engine.Screens;
@@ -10,7 +10,7 @@ namespace LevelUpNotifications
     public class LevelUpNotificationsTracker : PlayerUpdateTracker
     {
         // Display the party notification when the player's troops level up.
-        public static void SetPartyNotification()
+        public void SetPartyNotification()
         {
             if (!Current.IsPartyNotificationActive && !(ScreenManager.TopScreen is GauntletPartyScreen))
             {
@@ -47,6 +47,6 @@ namespace LevelUpNotifications
                 }
             }
         }
-        private static bool _isTroopUpgradable;
+        private bool _isTroopUpgradable;
     }
 }
