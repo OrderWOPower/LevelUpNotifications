@@ -20,7 +20,7 @@ namespace LevelUpNotifications
                     for (int i = 0; i < troopRosterElement.Character.UpgradeTargets?.Length; i++)
                     {
                         CharacterObject characterObject = troopRosterElement.Character.UpgradeTargets[i];
-                        int num2 = troopRosterElement.Character.UpgradeCost(PartyBase.MainParty, i);
+                        int num2 = troopRosterElement.Character.GetUpgradeGoldCost(PartyBase.MainParty, i);
                         int val = troopRosterElement.Number;
                         int numOfCategoryItemPartyHas = Current.GetNumOfCategoryItemPartyHas(MobileParty.MainParty.ItemRoster, characterObject.UpgradeRequiresItemFromCategory);
                         if (num2 > 0)
@@ -28,7 +28,7 @@ namespace LevelUpNotifications
                             val = (int)MathF.Clamp((float)Math.Floor(Hero.MainHero.Gold / (float)num2), 0f, troopRosterElement.Number);
                         }
                         int val2 = (characterObject.UpgradeRequiresItemFromCategory != null) ? numOfCategoryItemPartyHas : troopRosterElement.Number;
-                        int val3 = (int)Math.Floor(troopRosterElement.Xp / (float)troopRosterElement.Character.UpgradeXpCost);
+                        int val3 = (int)Math.Floor(troopRosterElement.Xp / (float)troopRosterElement.Character.GetUpgradeXpCost(PartyBase.MainParty, i));
                         num = Math.Max(Math.Min(Math.Min(val, val2), val3), num);
                     }
                     if (num > 0)
