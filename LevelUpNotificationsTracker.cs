@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors;
 using TaleWorlds.Core;
@@ -19,8 +19,8 @@ namespace LevelUpNotifications
             {
                 int requiredHorses = 0;
                 int requiredWarHorses = 0;
-                TextObject horseTextObject = null;
-                TextObject warHorseTextObject = null;
+                TextObject horseTextObject = DefaultItemCategories.Horse.GetName();
+                TextObject warHorseTextObject = DefaultItemCategories.WarHorse.GetName();
                 foreach (TroopRosterElement troopRosterElement in MobileParty.MainParty.MemberRoster.GetTroopRoster())
                 {
                     int num = 0;
@@ -40,13 +40,11 @@ namespace LevelUpNotifications
                         if (characterObject.UpgradeRequiresItemFromCategory == DefaultItemCategories.Horse)
                         {
                             requiredHorses += val3;
-                            horseTextObject = characterObject.UpgradeRequiresItemFromCategory.GetName();
                             break;
                         }
                         else if (characterObject.UpgradeRequiresItemFromCategory == DefaultItemCategories.WarHorse)
                         {
                             requiredWarHorses += val3;
-                            warHorseTextObject = characterObject.UpgradeRequiresItemFromCategory.GetName();
                             break;
                         }
                     }
@@ -66,7 +64,6 @@ namespace LevelUpNotifications
                     if (requiredHorses > 0 && requiredWarHorses <= 0)
                     {
                         InformationManager.AddQuickInformation(new TextObject("You require {REQUIRED_HORSES} {?(REQUIRED_HORSES > 1)}{PLURAL(HORSE)}{?}{HORSE}{\\?} to upgrade your troops.", null), 0, null, "");
-
                     }
                     else if (requiredHorses <= 0 && requiredWarHorses > 0)
                     {
