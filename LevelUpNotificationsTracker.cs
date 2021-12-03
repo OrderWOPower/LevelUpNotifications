@@ -1,19 +1,26 @@
-using System;
+﻿using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors;
+using TaleWorlds.Core;
 using TaleWorlds.Engine.Screens;
 using TaleWorlds.Library;
-using SandBox.GauntletUI;
+using TaleWorlds.Localization;
+using SandBox.View.Map;
 
 namespace LevelUpNotifications
 {
     public class LevelUpNotificationsTracker : PlayerUpdateTracker
     {
         // Display the party notification when the player's troops level up.
+        // Display a notification message when the player requires horses to upgrade troops.
         public void SetPartyNotification()
         {
-            if (!Current.IsPartyNotificationActive && !(ScreenManager.TopScreen is GauntletPartyScreen))
+            if (ScreenManager.TopScreen is MapScreen)
             {
+                int requiredHorses = 0;
+                int requiredWarHorses = 0;
+                TextObject horseTextObject = null;
+                TextObject warHorseTextObject = null;
                 foreach (TroopRosterElement troopRosterElement in MobileParty.MainParty.MemberRoster.GetTroopRoster())
                 {
                     int num = 0;
@@ -30,23 +37,53 @@ namespace LevelUpNotifications
                         int val2 = (characterObject.UpgradeRequiresItemFromCategory != null) ? numOfCategoryItemPartyHas : troopRosterElement.Number;
                         int val3 = (int)Math.Floor(troopRosterElement.Xp / (float)troopRosterElement.Character.GetUpgradeXpCost(PartyBase.MainParty, i));
                         num = Math.Max(Math.Min(Math.Min(val, val2), val3), num);
+                        if (characterObject.UpgradeRequiresItemFromCategory == DefaultItemCategories.Horse)
+                        {
+                            requiredHorses += val3;
+                            horseTextObject = characterObject.UpgradeRequiresItemFromCategory.GetName();
+                            break;
+                        }
+                        else if (characterObject.UpgradeRequiresItemFromCategory == DefaultItemCategories.WarHorse)
+                        {
+                            requiredWarHorses += val3;
+                            warHorseTextObject = characterObject.UpgradeRequiresItemFromCategory.GetName();
+                            break;
+                        }
                     }
-                    if (num > 0)
+                    if (num > 0 && !Current.IsPartyNotificationActive)
                     {
-                        _isTroopUpgradable = true;
-                        break;
-                    }
-                    else
-                    {
-                        _isTroopUpgradable = false;
+                        typeof(PlayerUpdateTracker).GetProperty("IsPartyNotificationActive").SetValue(Current, true);
                     }
                 }
-                if (_isTroopUpgradable)
+                requiredHorses -= Current.GetNumOfCategoryItemPartyHas(MobileParty.MainParty.ItemRoster, DefaultItemCategories.Horse);
+                requiredWarHorses -= Current.GetNumOfCategoryItemPartyHas(MobileParty.MainParty.ItemRoster, DefaultItemCategories.WarHorse);
+                if ((requiredHorses > 0 || requiredWarHorses > 0) && !_hasNotifiedHorsesRequired)
                 {
-                    typeof(PlayerUpdateTracker).GetProperty("IsPartyNotificationActive").SetValue(Current, true);
+                    MBTextManager.SetTextVariable("REQUIRED_HORSES", requiredHorses);
+                    MBTextManager.SetTextVariable("REQUIRED_WAR_HORSES", requiredWarHorses);
+                    MBTextManager.SetTextVariable("HORSE", horseTextObject);
+                    MBTextManager.SetTextVariable("WAR_HORSE", warHorseTextObject);
+                    if (requiredHorses > 0 && requiredWarHorses <= 0)
+                    {
+                        InformationManager.AddQuickInformation(new TextObject("You require {REQUIRED_HORSES} {?(REQUIRED_HORSES > 1)}{PLURAL(HORSE)}{?}{HORSE}{\\?} to upgrade your troops.", null), 0, null, "");
+
+                    }
+                    else if (requiredHorses <= 0 && requiredWarHorses > 0)
+                    {
+                        InformationManager.AddQuickInformation(new TextObject("You require {REQUIRED_WAR_HORSES} {?(REQUIRED_WAR_HORSES > 1)}{PLURAL(WAR_HORSE)}{?}{WAR_HORSE}{\\?} to upgrade your troops.", null), 0, null, "");
+                    }
+                    else if (requiredHorses > 0 && requiredWarHorses > 0)
+                    {
+                        InformationManager.AddQuickInformation(new TextObject("You require {REQUIRED_HORSES} {?(REQUIRED_HORSES > 1)}{PLURAL(HORSE)}{?}{HORSE}{\\?} and {REQUIRED_WAR_HORSES} {?(REQUIRED_WAR_HORSES > 1)}{PLURAL(WAR_HORSE)}{?}{WAR_HORSE}{\\?} to upgrade your troops.", null), 0, null, "");
+                    }
+                    _hasNotifiedHorsesRequired = true;
                 }
             }
+            else
+            {
+                _hasNotifiedHorsesRequired = false;
+            }
         }
-        private bool _isTroopUpgradable;
+        private bool _hasNotifiedHorsesRequired;
     }
 }
