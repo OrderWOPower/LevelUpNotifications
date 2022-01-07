@@ -1,3 +1,4 @@
+﻿using SandBox.View.Map;
 using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors;
@@ -5,7 +6,6 @@ using TaleWorlds.Core;
 using TaleWorlds.Engine.Screens;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
-using SandBox.View.Map;
 
 namespace LevelUpNotifications
 {
