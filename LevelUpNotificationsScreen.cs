@@ -1,7 +1,10 @@
 ﻿using SandBox.View.Map;
 using System;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.GameState;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
@@ -12,12 +15,16 @@ namespace LevelUpNotifications
     [GameStateScreen(typeof(MapState))]
     public class LevelUpNotificationsScreen : MapScreen
     {
+        private bool _hasNotifiedHorsesRequired;
+
         public LevelUpNotificationsScreen(MapState mapState) : base(mapState) { }
+
         protected override void OnActivate()
         {
             base.OnActivate();
             _hasNotifiedHorsesRequired = false;
         }
+
         // Display the party notification when the player's troops level up.
         // Display a notification message when the player requires horses to upgrade troops.
         protected override void OnFrameTick(float dt)
@@ -83,6 +90,5 @@ namespace LevelUpNotifications
                 _hasNotifiedHorsesRequired = true;
             }
         }
-        private bool _hasNotifiedHorsesRequired;
     }
 }
