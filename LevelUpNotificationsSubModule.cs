@@ -1,6 +1,9 @@
-﻿using TaleWorlds.CampaignSystem;
+﻿using SandBox.View.Map;
+using System;
+using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
+using TaleWorlds.ScreenSystem;
 
 namespace LevelUpNotifications
 {
@@ -13,6 +16,15 @@ namespace LevelUpNotifications
             {
                 CampaignGameStarter campaignStarter = (CampaignGameStarter)gameStarter;
                 campaignStarter.AddBehavior(new LevelUpNotificationsBehavior());
+                ScreenManager.OnPushScreen += OnPushScreen;
+            }
+        }
+
+        public void OnPushScreen(ScreenBase pushedScreen)
+        {
+            if (pushedScreen is MapScreen mapScreen)
+            {
+                mapScreen.AddMapView<LevelUpNotificationsView>(Array.Empty<object>());
             }
         }
     }
