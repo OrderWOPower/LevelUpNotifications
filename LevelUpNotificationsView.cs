@@ -14,7 +14,7 @@ namespace LevelUpNotifications
     {
         private bool _hasNotifiedHorsesRequired;
 
-        protected override void OnActivate() => _hasNotifiedHorsesRequired = false;
+        protected override void OnResume() => _hasNotifiedHorsesRequired = false;
 
         // Display the party notification when the player's troops level up.
         // Display a notification message when the player requires horses to upgrade troops.
