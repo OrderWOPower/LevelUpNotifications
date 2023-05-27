@@ -1,5 +1,4 @@
 ﻿using SandBox.View.Map;
-using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Party;
@@ -16,67 +15,79 @@ namespace LevelUpNotifications
 
         protected override void OnResume() => _hasNotifiedHorsesRequired = false;
 
-        // Display the party notification when the player's troops level up.
-        // Display a notification message when the player requires horses to upgrade troops.
         protected override void OnMapScreenUpdate(float dt)
         {
-            int requiredHorses = 0;
-            int requiredWarHorses = 0;
-            TextObject horseTextObject = DefaultItemCategories.Horse.GetName();
-            TextObject warHorseTextObject = DefaultItemCategories.WarHorse.GetName();
+            PartyBase mainParty = PartyBase.MainParty;
+            ItemCategory horse = DefaultItemCategories.Horse, warHorse = DefaultItemCategories.WarHorse;
+            TextObject horseTextObject = horse.GetName(), warHorseTextObject = warHorse.GetName();
             PlayerUpdateTracker playerUpdateTracker = PlayerUpdateTracker.Current;
-            foreach (TroopRosterElement troopRosterElement in MobileParty.MainParty.MemberRoster.GetTroopRoster())
+            int numOfRequiredHorses = 0, numOfRequiredWarHorses = 0;
+
+            foreach (TroopRosterElement troopRosterElement in mainParty.MemberRoster.GetTroopRoster())
             {
-                int num = 0;
-                for (int i = 0; i < troopRosterElement.Character.UpgradeTargets?.Length; i++)
+                CharacterObject currentCharacter = troopRosterElement.Character;
+                int numOfUpgradeableTroops = 0;
+
+                for (int i = 0; i < currentCharacter.UpgradeTargets?.Length; i++)
                 {
-                    CharacterObject characterObject = troopRosterElement.Character.UpgradeTargets[i];
-                    int num2 = troopRosterElement.Character.GetUpgradeGoldCost(PartyBase.MainParty, i);
-                    int val = troopRosterElement.Number;
-                    int numOfCategoryItemPartyHas = playerUpdateTracker.GetNumOfCategoryItemPartyHas(MobileParty.MainParty.ItemRoster, characterObject.UpgradeRequiresItemFromCategory);
-                    if (num2 > 0)
+                    CharacterObject targetCharacter = currentCharacter.UpgradeTargets[i];
+                    ItemCategory upgradeRequiresItemFromCategory = targetCharacter.UpgradeRequiresItemFromCategory;
+                    int numOfTroops = troopRosterElement.Number;
+                    int troopXp = troopRosterElement.Xp;
+                    int upgradeGoldCost = currentCharacter.GetUpgradeGoldCost(mainParty, i);
+                    int upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
+                    int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
+                    int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
+                    int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(troopXp / upgradeXpCost, 0f, numOfTroops) : 0;
+                    int numOfTroopsWithPerkRequirementsMet = Campaign.Current.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
+
+                    numOfUpgradeableTroops = MathF.Min(MathF.Min(numOfTroopsWithGoldRequirementsMet, numOfTroopsWithItemRequirementsMet), MathF.Min(numOfTroopsWithXpRequirementsMet, numOfTroopsWithPerkRequirementsMet));
+
+                    if (upgradeRequiresItemFromCategory == horse)
                     {
-                        val = (int)MathF.Clamp((float)Math.Floor(Hero.MainHero.Gold / (float)num2), 0f, troopRosterElement.Number);
-                    }
-                    int val2 = (characterObject.UpgradeRequiresItemFromCategory != null) ? numOfCategoryItemPartyHas : troopRosterElement.Number;
-                    int val3 = (int)Math.Floor(troopRosterElement.Xp / (float)troopRosterElement.Character.GetUpgradeXpCost(PartyBase.MainParty, i));
-                    num = Math.Max(Math.Min(Math.Min(val, val2), val3), num);
-                    if (characterObject.UpgradeRequiresItemFromCategory == DefaultItemCategories.Horse)
-                    {
-                        requiredHorses += val3;
+                        numOfRequiredHorses += numOfTroopsWithXpRequirementsMet;
+
                         break;
                     }
-                    else if (characterObject.UpgradeRequiresItemFromCategory == DefaultItemCategories.WarHorse)
+                    else if (upgradeRequiresItemFromCategory == warHorse)
                     {
-                        requiredWarHorses += val3;
+                        numOfRequiredWarHorses += numOfTroopsWithXpRequirementsMet;
+
                         break;
                     }
                 }
-                if (num > 0 && !playerUpdateTracker.IsPartyNotificationActive)
+
+                if (numOfUpgradeableTroops > 0 && !playerUpdateTracker.IsPartyNotificationActive)
                 {
+                    // Display the party notification when the player's troops level up.
                     typeof(PlayerUpdateTracker).GetProperty("IsPartyNotificationActive").SetValue(playerUpdateTracker, true);
                 }
             }
-            requiredHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(MobileParty.MainParty.ItemRoster, DefaultItemCategories.Horse);
-            requiredWarHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(MobileParty.MainParty.ItemRoster, DefaultItemCategories.WarHorse);
-            if ((requiredHorses > 0 || requiredWarHorses > 0) && !_hasNotifiedHorsesRequired)
+
+            numOfRequiredHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, horse);
+            numOfRequiredWarHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, warHorse);
+
+            if ((numOfRequiredHorses > 0 || numOfRequiredWarHorses > 0) && !_hasNotifiedHorsesRequired)
             {
-                MBTextManager.SetTextVariable("REQUIRED_HORSES", requiredHorses);
-                MBTextManager.SetTextVariable("REQUIRED_WAR_HORSES", requiredWarHorses);
+                MBTextManager.SetTextVariable("REQUIRED_HORSES", numOfRequiredHorses);
+                MBTextManager.SetTextVariable("REQUIRED_WAR_HORSES", numOfRequiredWarHorses);
                 MBTextManager.SetTextVariable("HORSE", horseTextObject);
                 MBTextManager.SetTextVariable("WAR_HORSE", warHorseTextObject);
-                if (requiredHorses > 0 && requiredWarHorses <= 0)
+
+                // Display a notification message when the player requires horses to upgrade troops.
+                if (numOfRequiredHorses > 0 && numOfRequiredWarHorses <= 0)
                 {
                     MBInformationManager.AddQuickInformation(new TextObject("You require {REQUIRED_HORSES} {?(REQUIRED_HORSES > 1)}{PLURAL(HORSE)}{?}{HORSE}{\\?} to upgrade your troops.", null), 0, null, "");
                 }
-                else if (requiredHorses <= 0 && requiredWarHorses > 0)
+                else if (numOfRequiredHorses <= 0 && numOfRequiredWarHorses > 0)
                 {
                     MBInformationManager.AddQuickInformation(new TextObject("You require {REQUIRED_WAR_HORSES} {?(REQUIRED_WAR_HORSES > 1)}{PLURAL(WAR_HORSE)}{?}{WAR_HORSE}{\\?} to upgrade your troops.", null), 0, null, "");
                 }
-                else if (requiredHorses > 0 && requiredWarHorses > 0)
+                else if (numOfRequiredHorses > 0 && numOfRequiredWarHorses > 0)
                 {
                     MBInformationManager.AddQuickInformation(new TextObject("You require {REQUIRED_HORSES} {?(REQUIRED_HORSES > 1)}{PLURAL(HORSE)}{?}{HORSE}{\\?} and {REQUIRED_WAR_HORSES} {?(REQUIRED_WAR_HORSES > 1)}{PLURAL(WAR_HORSE)}{?}{WAR_HORSE}{\\?} to upgrade your troops.", null), 0, null, "");
                 }
+
                 _hasNotifiedHorsesRequired = true;
             }
         }
