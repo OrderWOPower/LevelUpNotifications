@@ -18,8 +18,8 @@ namespace LevelUpNotifications
         protected override void OnMapScreenUpdate(float dt)
         {
             PartyBase mainParty = PartyBase.MainParty;
-            ItemCategory horse = DefaultItemCategories.Horse, warHorse = DefaultItemCategories.WarHorse;
-            TextObject horseTextObject = horse.GetName(), warHorseTextObject = warHorse.GetName();
+            ItemCategory horseCategory = DefaultItemCategories.Horse, warHorseCategory = DefaultItemCategories.WarHorse;
+            TextObject horseTextObject = horseCategory.GetName(), warHorseTextObject = warHorseCategory.GetName();
             PlayerUpdateTracker playerUpdateTracker = PlayerUpdateTracker.Current;
             int numOfRequiredHorses = 0, numOfRequiredWarHorses = 0;
 
@@ -43,13 +43,13 @@ namespace LevelUpNotifications
 
                     numOfUpgradeableTroops = MathF.Min(MathF.Min(numOfTroopsWithGoldRequirementsMet, numOfTroopsWithItemRequirementsMet), MathF.Min(numOfTroopsWithXpRequirementsMet, numOfTroopsWithPerkRequirementsMet));
 
-                    if (upgradeRequiresItemFromCategory == horse)
+                    if (upgradeRequiresItemFromCategory == horseCategory)
                     {
                         numOfRequiredHorses += numOfTroopsWithXpRequirementsMet;
 
                         break;
                     }
-                    else if (upgradeRequiresItemFromCategory == warHorse)
+                    else if (upgradeRequiresItemFromCategory == warHorseCategory)
                     {
                         numOfRequiredWarHorses += numOfTroopsWithXpRequirementsMet;
 
@@ -64,8 +64,8 @@ namespace LevelUpNotifications
                 }
             }
 
-            numOfRequiredHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, horse);
-            numOfRequiredWarHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, warHorse);
+            numOfRequiredHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, horseCategory);
+            numOfRequiredWarHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, warHorseCategory);
 
             if ((numOfRequiredHorses > 0 || numOfRequiredWarHorses > 0) && !_hasNotifiedHorsesRequired)
             {
