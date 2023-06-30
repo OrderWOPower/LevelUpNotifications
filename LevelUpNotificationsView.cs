@@ -1,4 +1,5 @@
 ﻿using SandBox.View.Map;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Party;
@@ -20,7 +21,7 @@ namespace LevelUpNotifications
             PartyBase mainParty = PartyBase.MainParty;
             ItemCategory horseCategory = DefaultItemCategories.Horse, warHorseCategory = DefaultItemCategories.WarHorse;
             TextObject horseTextObject = horseCategory.GetName(), warHorseTextObject = warHorseCategory.GetName();
-            PlayerUpdateTracker playerUpdateTracker = PlayerUpdateTracker.Current;
+            IViewDataTracker viewDataTracker = Campaign.Current.GetCampaignBehavior<IViewDataTracker>();
             int numOfRequiredHorses = 0, numOfRequiredWarHorses = 0;
 
             foreach (TroopRosterElement troopRosterElement in mainParty.MemberRoster.GetTroopRoster())
@@ -37,7 +38,7 @@ namespace LevelUpNotifications
                     int upgradeGoldCost = currentCharacter.GetUpgradeGoldCost(mainParty, i);
                     int upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
                     int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
-                    int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
+                    int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
                     int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(troopXp / upgradeXpCost, 0f, numOfTroops) : 0;
                     int numOfTroopsWithPerkRequirementsMet = Campaign.Current.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
 
@@ -57,15 +58,15 @@ namespace LevelUpNotifications
                     }
                 }
 
-                if (numOfUpgradeableTroops > 0 && !playerUpdateTracker.IsPartyNotificationActive)
+                if (numOfUpgradeableTroops > 0 && !viewDataTracker.IsPartyNotificationActive)
                 {
                     // Display the party notification when the player's troops level up.
-                    typeof(PlayerUpdateTracker).GetProperty("IsPartyNotificationActive").SetValue(playerUpdateTracker, true);
+                    typeof(ViewDataTrackerCampaignBehavior).GetProperty("IsPartyNotificationActive").SetValue(viewDataTracker, true);
                 }
             }
 
-            numOfRequiredHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, horseCategory);
-            numOfRequiredWarHorses -= playerUpdateTracker.GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, warHorseCategory);
+            numOfRequiredHorses -= GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, horseCategory);
+            numOfRequiredWarHorses -= GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, warHorseCategory);
 
             if ((numOfRequiredHorses > 0 || numOfRequiredWarHorses > 0) && !_hasNotifiedHorsesRequired)
             {
@@ -90,6 +91,18 @@ namespace LevelUpNotifications
 
                 _hasNotifiedHorsesRequired = true;
             }
+        }
+
+        public int GetNumOfCategoryItemPartyHas(ItemRoster items, ItemCategory itemCategory)
+        {
+            int num = 0;
+
+            foreach (ItemRosterElement itemRosterElement in items.Where(e => e.EquipmentElement.Item.ItemCategory == itemCategory))
+            {
+                num += itemRosterElement.Amount;
+            }
+
+            return num;
         }
     }
 }
