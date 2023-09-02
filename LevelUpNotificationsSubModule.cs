@@ -22,7 +22,7 @@ namespace LevelUpNotifications
         {
             if (pushedScreen is MapScreen mapScreen)
             {
-                mapScreen.AddMapView<LevelUpNotificationsView>(Array.Empty<object>());
+                mapScreen.AddMapView<LevelUpNotificationsView>();
             }
         }
     }
