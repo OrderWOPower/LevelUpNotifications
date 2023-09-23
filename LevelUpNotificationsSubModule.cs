@@ -1,5 +1,4 @@
 ﻿using SandBox.View.Map;
-using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
