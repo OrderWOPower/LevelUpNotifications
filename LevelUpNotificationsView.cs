@@ -93,16 +93,6 @@ namespace LevelUpNotifications
             }
         }
 
-        public int GetNumOfCategoryItemPartyHas(ItemRoster items, ItemCategory itemCategory)
-        {
-            int num = 0;
-
-            foreach (ItemRosterElement itemRosterElement in items.Where(e => e.EquipmentElement.Item.ItemCategory == itemCategory))
-            {
-                num += itemRosterElement.Amount;
-            }
-
-            return num;
-        }
+        public int GetNumOfCategoryItemPartyHas(ItemRoster items, ItemCategory itemCategory) => items.Where(itemRosterElement => itemRosterElement.EquipmentElement.Item.ItemCategory == itemCategory).Sum(itemRosterElement => itemRosterElement.Amount);
     }
 }
