@@ -19,9 +19,8 @@ namespace LevelUpNotifications
         protected override void OnMapScreenUpdate(float dt)
         {
             PartyBase mainParty = PartyBase.MainParty;
+            Campaign campaign = Campaign.Current;
             ItemCategory horseCategory = DefaultItemCategories.Horse, warHorseCategory = DefaultItemCategories.WarHorse;
-            TextObject horseTextObject = horseCategory.GetName(), warHorseTextObject = warHorseCategory.GetName();
-            IViewDataTracker viewDataTracker = Campaign.Current.GetCampaignBehavior<IViewDataTracker>();
             int numOfRequiredHorses = 0, numOfRequiredWarHorses = 0;
 
             foreach (TroopRosterElement troopRosterElement in mainParty.MemberRoster.GetTroopRoster())
@@ -40,7 +39,7 @@ namespace LevelUpNotifications
                     int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
                     int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
                     int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(troopXp / upgradeXpCost, 0f, numOfTroops) : 0;
-                    int numOfTroopsWithPerkRequirementsMet = Campaign.Current.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
+                    int numOfTroopsWithPerkRequirementsMet = campaign.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
 
                     numOfUpgradeableTroops = MathF.Min(MathF.Min(numOfTroopsWithGoldRequirementsMet, numOfTroopsWithItemRequirementsMet), MathF.Min(numOfTroopsWithXpRequirementsMet, numOfTroopsWithPerkRequirementsMet));
 
@@ -58,10 +57,10 @@ namespace LevelUpNotifications
                     }
                 }
 
-                if (numOfUpgradeableTroops > 0 && !viewDataTracker.IsPartyNotificationActive)
+                if (numOfUpgradeableTroops > 0 && !campaign.GetCampaignBehavior<IViewDataTracker>().IsPartyNotificationActive)
                 {
                     // Display the party notification when the player's troops level up.
-                    typeof(ViewDataTrackerCampaignBehavior).GetProperty("IsPartyNotificationActive").SetValue(viewDataTracker, true);
+                    typeof(ViewDataTrackerCampaignBehavior).GetProperty("IsPartyNotificationActive").SetValue(campaign.GetCampaignBehavior<IViewDataTracker>(), true);
                 }
             }
 
@@ -72,8 +71,8 @@ namespace LevelUpNotifications
             {
                 MBTextManager.SetTextVariable("REQUIRED_HORSES", numOfRequiredHorses);
                 MBTextManager.SetTextVariable("REQUIRED_WAR_HORSES", numOfRequiredWarHorses);
-                MBTextManager.SetTextVariable("HORSE", horseTextObject);
-                MBTextManager.SetTextVariable("WAR_HORSE", warHorseTextObject);
+                MBTextManager.SetTextVariable("HORSE", horseCategory.GetName());
+                MBTextManager.SetTextVariable("WAR_HORSE", warHorseCategory.GetName());
 
                 // Display a notification message when the player requires horses to upgrade troops.
                 if (numOfRequiredHorses > 0 && numOfRequiredWarHorses <= 0)
