@@ -38,7 +38,7 @@ namespace LevelUpNotifications
                     int upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
                     int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
                     int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
-                    int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(troopXp / upgradeXpCost, 0f, numOfTroops) : 0;
+                    int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(upgradeXpCost > 0 ? troopXp / upgradeXpCost : numOfTroops, 0f, numOfTroops) : 0;
                     int numOfTroopsWithPerkRequirementsMet = campaign.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
 
                     numOfUpgradeableTroops = MathF.Min(MathF.Min(numOfTroopsWithGoldRequirementsMet, numOfTroopsWithItemRequirementsMet), MathF.Min(numOfTroopsWithXpRequirementsMet, numOfTroopsWithPerkRequirementsMet));
