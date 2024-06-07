@@ -32,10 +32,7 @@ namespace LevelUpNotifications
                 {
                     CharacterObject targetCharacter = currentCharacter.UpgradeTargets[i];
                     ItemCategory upgradeRequiresItemFromCategory = targetCharacter.UpgradeRequiresItemFromCategory;
-                    int numOfTroops = troopRosterElement.Number;
-                    int troopXp = troopRosterElement.Xp;
-                    int upgradeGoldCost = currentCharacter.GetUpgradeGoldCost(mainParty, i);
-                    int upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
+                    int numOfTroops = troopRosterElement.Number, troopXp = troopRosterElement.Xp, upgradeGoldCost = currentCharacter.GetUpgradeGoldCost(mainParty, i), upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
                     int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
                     int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
                     int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(upgradeXpCost > 0 ? troopXp / upgradeXpCost : numOfTroops, 0f, numOfTroops) : 0;
