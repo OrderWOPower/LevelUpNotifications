@@ -26,35 +26,38 @@ namespace LevelUpNotifications
             foreach (TroopRosterElement troopRosterElement in mainParty.MemberRoster.GetTroopRoster())
             {
                 CharacterObject currentCharacter = troopRosterElement.Character;
-                int numOfUpgradeableTroops = 0;
+                bool isTroopUpgradable = false;
 
                 for (int i = 0; i < currentCharacter.UpgradeTargets?.Length; i++)
                 {
-                    CharacterObject targetCharacter = currentCharacter.UpgradeTargets[i];
-                    ItemCategory upgradeRequiresItemFromCategory = targetCharacter.UpgradeRequiresItemFromCategory;
-                    int numOfTroops = troopRosterElement.Number, troopXp = troopRosterElement.Xp, upgradeGoldCost = currentCharacter.GetUpgradeGoldCost(mainParty, i), upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
-                    int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
-                    int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
-                    int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(upgradeXpCost > 0 ? troopXp / upgradeXpCost : numOfTroops, 0f, numOfTroops) : 0;
-                    int numOfTroopsWithPerkRequirementsMet = campaign.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
-
-                    numOfUpgradeableTroops = MathF.Min(MathF.Min(numOfTroopsWithGoldRequirementsMet, numOfTroopsWithItemRequirementsMet), MathF.Min(numOfTroopsWithXpRequirementsMet, numOfTroopsWithPerkRequirementsMet));
-
-                    if (upgradeRequiresItemFromCategory == horseCategory)
+                    if (!isTroopUpgradable)
                     {
-                        numOfRequiredHorses += numOfTroopsWithXpRequirementsMet;
+                        CharacterObject targetCharacter = currentCharacter.UpgradeTargets[i];
+                        ItemCategory upgradeRequiresItemFromCategory = targetCharacter.UpgradeRequiresItemFromCategory;
+                        int numOfTroops = troopRosterElement.Number, troopXp = troopRosterElement.Xp, upgradeGoldCost = currentCharacter.GetUpgradeGoldCost(mainParty, i), upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
+                        int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
+                        int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
+                        int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(upgradeXpCost > 0 ? troopXp / upgradeXpCost : numOfTroops, 0f, numOfTroops) : 0;
+                        int numOfTroopsWithPerkRequirementsMet = campaign.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
 
-                        break;
-                    }
-                    else if (upgradeRequiresItemFromCategory == warHorseCategory)
-                    {
-                        numOfRequiredWarHorses += numOfTroopsWithXpRequirementsMet;
+                        isTroopUpgradable = MathF.Min(MathF.Min(numOfTroopsWithGoldRequirementsMet, numOfTroopsWithItemRequirementsMet), MathF.Min(numOfTroopsWithXpRequirementsMet, numOfTroopsWithPerkRequirementsMet)) > 0;
 
-                        break;
+                        if (upgradeRequiresItemFromCategory == horseCategory)
+                        {
+                            numOfRequiredHorses += numOfTroopsWithXpRequirementsMet;
+
+                            break;
+                        }
+                        else if (upgradeRequiresItemFromCategory == warHorseCategory)
+                        {
+                            numOfRequiredWarHorses += numOfTroopsWithXpRequirementsMet;
+
+                            break;
+                        }
                     }
                 }
 
-                if (numOfUpgradeableTroops > 0 && !campaign.GetCampaignBehavior<IViewDataTracker>().IsPartyNotificationActive)
+                if (isTroopUpgradable && !campaign.GetCampaignBehavior<IViewDataTracker>().IsPartyNotificationActive)
                 {
                     // Display the party notification when the player's troops level up.
                     typeof(ViewDataTrackerCampaignBehavior).GetProperty("IsPartyNotificationActive").SetValue(campaign.GetCampaignBehavior<IViewDataTracker>(), true);
