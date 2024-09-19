@@ -6,7 +6,7 @@ using TaleWorlds.ScreenSystem;
 
 namespace LevelUpNotifications
 {
-    // This mod displays notifications when the player's troops level up.
+    // This mod displays notifications when the player's heroes and troops level up.
     public class LevelUpNotificationsSubModule : MBSubModuleBase
     {
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)

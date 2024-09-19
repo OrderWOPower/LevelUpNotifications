@@ -1,5 +1,6 @@
 ﻿using SandBox.View.Map;
 using System.Linq;
+using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Party;
@@ -22,6 +23,7 @@ namespace LevelUpNotifications
             Campaign campaign = Campaign.Current;
             ItemCategory horseCategory = DefaultItemCategories.Horse, warHorseCategory = DefaultItemCategories.WarHorse;
             int numOfRequiredHorses = 0, numOfRequiredWarHorses = 0;
+            IViewDataTracker viewDataTracker = campaign.GetCampaignBehavior<IViewDataTracker>();
 
             foreach (TroopRosterElement troopRosterElement in mainParty.MemberRoster.GetTroopRoster())
             {
@@ -57,10 +59,16 @@ namespace LevelUpNotifications
                     }
                 }
 
-                if (isTroopUpgradable && !campaign.GetCampaignBehavior<IViewDataTracker>().IsPartyNotificationActive)
+                if (currentCharacter.IsHero && (currentCharacter.HeroObject.HeroDeveloper.UnspentAttributePoints > 0 || currentCharacter.HeroObject.HeroDeveloper.UnspentFocusPoints > 0) && !viewDataTracker.IsCharacterNotificationActive)
+                {
+                    // Display the character notification when the player's heroes level up.
+                    typeof(ViewDataTrackerCampaignBehavior).GetField("_isCharacterNotificationActive", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(viewDataTracker, true);
+                }
+
+                if (isTroopUpgradable && !viewDataTracker.IsPartyNotificationActive)
                 {
                     // Display the party notification when the player's troops level up.
-                    typeof(ViewDataTrackerCampaignBehavior).GetProperty("IsPartyNotificationActive").SetValue(campaign.GetCampaignBehavior<IViewDataTracker>(), true);
+                    typeof(ViewDataTrackerCampaignBehavior).GetProperty("IsPartyNotificationActive").SetValue(viewDataTracker, true);
                 }
             }
 
