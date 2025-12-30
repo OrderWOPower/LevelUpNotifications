@@ -35,12 +35,12 @@ namespace LevelUpNotifications
                     if (!isTroopUpgradable)
                     {
                         CharacterObject targetCharacter = currentCharacter.UpgradeTargets[i];
-                        ItemCategory upgradeRequiresItemFromCategory = targetCharacter.UpgradeRequiresItemFromCategory;
+                        ItemCategory upgradeRequiresItemFromCategory = targetCharacter?.UpgradeRequiresItemFromCategory;
                         int numOfTroops = troopRosterElement.Number, troopXp = troopRosterElement.Xp, upgradeGoldCost = currentCharacter.GetUpgradeGoldCost(mainParty, i), upgradeXpCost = currentCharacter.GetUpgradeXpCost(mainParty, i);
                         int numOfTroopsWithGoldRequirementsMet = upgradeGoldCost > 0 ? (int)MathF.Clamp(Hero.MainHero.Gold / upgradeGoldCost, 0f, numOfTroops) : numOfTroops;
                         int numOfTroopsWithItemRequirementsMet = upgradeRequiresItemFromCategory != null ? GetNumOfCategoryItemPartyHas(mainParty.ItemRoster, upgradeRequiresItemFromCategory) : numOfTroops;
-                        int numOfTroopsWithXpRequirementsMet = targetCharacter.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(upgradeXpCost > 0 ? troopXp / upgradeXpCost : numOfTroops, 0f, numOfTroops) : 0;
-                        int numOfTroopsWithPerkRequirementsMet = campaign.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
+                        int numOfTroopsWithXpRequirementsMet = targetCharacter?.Level >= currentCharacter.Level && troopXp >= upgradeXpCost ? (int)MathF.Clamp(upgradeXpCost > 0 ? troopXp / upgradeXpCost : numOfTroops, 0f, numOfTroops) : 0;
+                        int numOfTroopsWithPerkRequirementsMet = targetCharacter != null && campaign.Models.PartyTroopUpgradeModel.DoesPartyHaveRequiredPerksForUpgrade(mainParty, currentCharacter, targetCharacter, out _) ? numOfTroops : 0;
 
                         isTroopUpgradable = MathF.Min(MathF.Min(numOfTroopsWithGoldRequirementsMet, numOfTroopsWithItemRequirementsMet), MathF.Min(numOfTroopsWithXpRequirementsMet, numOfTroopsWithPerkRequirementsMet)) > 0;
 
