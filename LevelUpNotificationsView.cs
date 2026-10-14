@@ -1,6 +1,6 @@
-﻿using SandBox.View.Map;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
+using SandBox.View.Map;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Party;
